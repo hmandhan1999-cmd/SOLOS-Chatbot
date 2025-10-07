@@ -1,0 +1,5 @@
+langchain
+langchain-community
+unstructured
+pdfminer.six
+sentence-transformers

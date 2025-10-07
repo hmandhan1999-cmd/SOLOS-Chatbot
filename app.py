@@ -28,16 +28,16 @@ if "vectorstore" not in st.session_state:
 
     st.session_state.embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     # st.session_state.loader = WebBaseLoader("https://en.wikipedia.org/wiki/Artificial_intelligence")
-    st.session_state.loader = UnstructuredPDFLoader(r"C:\Users\HP\OneDrive\Desktop\Langchain Chatbot Project 1\Project\Corporate Sales deck.pdf", strategy="hi_res")
+    st.session_state.loader = UnstructuredPDFLoader(r"C:\Users\HP\OneDrive\Desktop\Langchain Chatbot Project 1\Project\SOLOS-Chatbot\data\Corporate Sales deck.pdf", strategy="ocr_only")
     st.session_state.documents = st.session_state.loader.load()
 
-    st.session_state.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    st.session_state.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200)
     st.session_state.docs = st.session_state.text_splitter.split_documents(st.session_state.documents)
     st.session_state.vectorstore = FAISS.from_documents(st.session_state.docs, st.session_state.embeddings)
 
 st.title("SOLOS Chatbot for generic user queries")
 
-input_text = st.text_input("Enter any query you have regarding creating a consignment in SOLOS")
+input_text = st.text_input("Enter any query you have regarding SOLOS")
 
 llm = ChatOllama(model="gemma2:2b", temperature=0, max_tokens=1000)
 
@@ -45,16 +45,19 @@ prompt=ChatPromptTemplate.from_template("Answer the question based on the contex
 
 
 retriever = st.session_state.vectorstore.as_retriever(search_type="similarity", search_kwargs={"k":3})
-chain = create_retrieval_chain(retriever, combine_docs_chain=create_stuff_documents_chain(llm, prompt=prompt, output_parser=StrOutputParser()))
+chain = create_retrieval_chain(retriever, create_stuff_documents_chain(llm, prompt))
 
-
-if st.text_input:
+if input_text:
     start=time.time()
     response = chain.invoke({"input": input_text})
     st.write(response)
 
     end=time.time()
     st.write(f"Response time: {end-start} seconds")
+
+   
+
+
 
 
 
