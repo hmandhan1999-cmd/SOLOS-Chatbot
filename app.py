@@ -16,11 +16,6 @@ from langchain_community.vectorstores import FAISS
 from langchain.embeddings import SentenceTransformerEmbeddings
 import time
 
-load_dotenv()
-
-## Load the Groq API key from .env file
-os.environ['GROQ_API_KEY'] = os.getenv("GROQ_API_KEY")
-
 ## Don't reload the below info everytime streamlit server runs on user interaction
 
 if "vectorstore" not in st.session_state:
