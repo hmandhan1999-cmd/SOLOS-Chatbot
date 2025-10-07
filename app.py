@@ -33,7 +33,7 @@ st.title("SOLOS Chatbot for generic user queries")
 
 input_text = st.text_input("Enter any query you have regarding SOLOS")
 
-llm = ChatOllama(model="gemma2:2b", base_url="http://172.31.21.150:11434", temperature=0, max_tokens=1000)
+llm = ChatOllama(model="gemma2:2b", base_url="http://127.0.0.1:11434", temperature=0, max_tokens=1000)
 
 prompt=ChatPromptTemplate.from_template("Answer the question based on the context below.\n\nContext: {context}\n\nQuestion: {input}\n\nAnswer:")
 
