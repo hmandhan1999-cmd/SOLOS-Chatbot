@@ -8,7 +8,6 @@ from langchain.document_loaders import UnstructuredPDFLoader
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -28,7 +27,7 @@ if "vectorstore" not in st.session_state:
 
     st.session_state.embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     # st.session_state.loader = WebBaseLoader("https://en.wikipedia.org/wiki/Artificial_intelligence")
-    st.session_state.loader = UnstructuredPDFLoader(r"C:\Users\HP\OneDrive\Desktop\Langchain Chatbot Project 1\Project\SOLOS-Chatbot\data\Corporate Sales deck.pdf", strategy="ocr_only")
+    st.session_state.loader = UnstructuredPDFLoader(r"data/Corporate Sales deck.pdf", strategy="ocr_only")
     st.session_state.documents = st.session_state.loader.load()
 
     st.session_state.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=200)
@@ -50,7 +49,7 @@ chain = create_retrieval_chain(retriever, create_stuff_documents_chain(llm, prom
 if input_text:
     start=time.time()
     response = chain.invoke({"input": input_text})
-    st.write(response)
+    st.write(response['answer'])
 
     end=time.time()
     st.write(f"Response time: {end-start} seconds")
