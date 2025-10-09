@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Modal</title>
+    <style>
+        /* --- General Body and Font Styles --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5; /* A light gray background for context */
+            color: #333;
+        }
+
+        /* --- Dummy background to replicate the screenshot --- */
+        .background-content {
+            padding: 20px;
+            /* The filter blurs the content behind the modal */
+            filter: blur(4px);
+            user-select: none;
+            /* Placeholder content to mimic the screenshot's background */
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><path d="M10 10 H90 V90 H10Z" stroke="%23e0e0e0" fill="none"/></svg>');
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Modal Layout --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 550px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Modal Header --- */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: #f36621;
+            color: #ffffff;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .close-icon {
+            font-size: 1.8rem;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        /* --- Modal Body --- */
+        .modal-body {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .so-number {
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .checklist-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 25px;
+        }
+
+        .checklist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sub-label {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .sub-label .required {
+            color: #e53935;
+        }
+
+        /* --- Details Sections (SKU & INVOICE) --- */
+        .details-section {
+            margin-bottom: 25px;
+        }
+
+        .details-section h3 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #666;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+        
+        .details-table {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .table-row {
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+        .details-table .table-row:first-child {
+            border-top: none;
+        }
+        
+        .table-header {
+            background-color: #f7f7f7;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .table-cell {
+            padding: 10px 12px;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+        .table-row .table-cell:first-child {
+            border-left: none;
+        }
+
+        /* Column Widths */
+        .sku-details-table .table-cell:nth-child(1) { flex: 3; }
+        .sku-details-table .table-cell:nth-child(2) { flex: 1; text-align: right; justify-content: flex-end; }
+        .sku-details-table .table-cell:nth-child(3) { flex: 1; text-align: right; justify-content: flex-end; }
+        
+        .invoice-details-table .table-header .table-cell:nth-child(1) { flex: 2; }
+        .invoice-details-table .table-header .table-cell:nth-child(2) { flex: 1; text-align: right; justify-content: flex-end; }
+        
+        .invoice-info-row {
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            color: #444;
+        }
+
+        .invoice-data-row .table-cell { flex: 1; }
+
+
+        /* --- Custom Checkbox Styling --- */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            height: 0;
+            width: 0;
+        }
+
+        .checkbox-container label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label::before {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid #ccc;
+            border-radius: 3px;
+            background-color: #fff;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .checkbox-container input[type="checkbox"]:checked + label::before {
+            background-color: #f36621;
+            border-color: #f36621;
+        }
+
+        .checkbox-container label::after {
+            content: '\\2713'; /* Checkmark */
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: white;
+            visibility: hidden;
+        }
+
+        .checkbox-container input[type="checkbox"]:checked + label::after {
+            visibility: visible;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-content"></div>
+
+    <div class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Checklist</h2>
+                <span class="close-icon">&times;</span>
+            </div>
+
+            <div class="modal-body">
+                <p class="so-number">SO No: SO-Dummy4/1</p>
+
+                <div class="checklist-group">
+                    <div class="checklist-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="invoice" name="invoice" checked>
+                            <label for="invoice">Invoice</label>
+                        </div>
+                        <span class="sub-label">name <span class="required">*</span></span>
+                    </div>
+                     <div class="checklist-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="packingList" name="packingList" checked>
+                            <label for="packingList">Packing List</label>
+                        </div>
+                        <span class="sub-label">required <span class="required">*</span></span>
+                    </div>
+                     <div class="checklist-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="eInvoice1" name="eInvoice1">
+                            <label for="eInvoice1">E-Invoice</label>
+                        </div>
+                        <span class="sub-label">required <span class="required">*</span></span>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3>SKU DETAILS</h3>
+                    <div class="details-table sku-details-table">
+                        <div class="table-row table-header">
+                            <div class="table-cell">SKU NAME: SO-DummySO4/1</div>
+                            <div class="table-cell">QTY</div>
+                            <div class="table-cell">QUANTITY</div>
+                        </div>
+                        <div class="table-row">
+                            <div class="table-cell">FGNOCS001000PFAN0181</div>
+                            <div class="table-cell">430</div>
+                            <div class="table-cell">430</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="details-section">
+                    <h3>INVOICE DETAILS</h3>
+                    <div class="details-table invoice-details-table">
+                         <div class="table-row table-header">
+                            <div class="table-cell">INVOICE DETAILS</div>
+                            <div class="table-cell">QUANTITY</div>
+                        </div>
+                         <div class="table-row invoice-info-row">
+                            <span>Invoice No: DH-SI-25-013349</span>
+                            <span>Invoice Date: 11-Sep-2025</span>
+                        </div>
+                        <div class="table-row invoice-data-row">
+                            <div class="table-cell">FGNOCS001000PFAN0181</div>
+                            <div class="table-cell">FGNOCS001000PFAN0181</div>
+                            <div class="table-cell">430</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checklist-group" style="border-bottom: none; padding-bottom: 0;">
+                     <div class="checklist-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="eInvoice2" name="eInvoice2">
+                            <label for="eInvoice2">E-Invoice</label>
+                        </div>
+                        <span class="sub-label">nermis <span class="required">*</span></span>
+                    </div>
+                     <div class="checklist-item">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="ewayBill" name="ewayBill">
+                            <label for="ewayBill">Eway Bill</label>
+                        </div>
+                        <span class="sub-label">revolít <span class="required">*</span></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
